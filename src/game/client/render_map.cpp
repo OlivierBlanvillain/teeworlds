@@ -7,6 +7,18 @@
 
 #include "render.h"
 
+float min4(float a, float b, float c, float d) {
+  float x = a < b ? a : b;
+  float y = c < d ? c : d;
+  return x < y ? x : y;
+}
+
+float max4(float a, float b, float c, float d) {
+  float x = a > b ? a : b;
+  float y = c > d ? c : d;
+  return x > y ? x : y;
+}
+
 void ValidateFCurve(const vec2& p0, vec2& p1, vec2& p2, const vec2& p3)
 {
 	// validate the bezier curve
@@ -319,11 +331,18 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 			Rotate(&q->m_aPoints[4], &aRotated[3], Rot);
 		}
 
+    float minX = min4(pPoints[0].x, pPoints[1].x, pPoints[2].x, pPoints[3].x);
+    float maxX = max4(pPoints[0].x, pPoints[1].x, pPoints[2].x, pPoints[3].x);
+    float minY = min4(pPoints[0].y, pPoints[1].y, pPoints[2].y, pPoints[3].y);
+    float maxY = max4(pPoints[0].y, pPoints[1].y, pPoints[2].y, pPoints[3].y);
+    float extraX = ((maxX - minX) * .0001f);
+    float extraY = ((maxY - minY) * .0001f);
+
 		IGraphics::CFreeformItem Freeform(
-			fx2f(pPoints[0].x)+OffsetX, fx2f(pPoints[0].y)+OffsetY,
-			fx2f(pPoints[1].x)+OffsetX, fx2f(pPoints[1].y)+OffsetY,
-			fx2f(pPoints[2].x)+OffsetX, fx2f(pPoints[2].y)+OffsetY,
-			fx2f(pPoints[3].x)+OffsetX, fx2f(pPoints[3].y)+OffsetY);
+      fx2f(pPoints[0].x)+OffsetX-extraX, fx2f(pPoints[0].y)+OffsetY-extraY,
+      fx2f(pPoints[1].x)+OffsetX+extraX, fx2f(pPoints[1].y)+OffsetY-extraY,
+      fx2f(pPoints[2].x)+OffsetX-extraX, fx2f(pPoints[2].y)+OffsetY+extraY,
+      fx2f(pPoints[3].x)+OffsetX+extraX, fx2f(pPoints[3].y)+OffsetY+extraY);
 		Graphics()->QuadsDrawFreeform(&Freeform, 1);
 	}
 	Graphics()->QuadsEnd();
